@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.OleDb;
 using System.Dynamic;
 using System.IO;
@@ -145,62 +146,54 @@ namespace JetToObjects.Database
             var multipleQueryResults = new Dictionary<int, dynamic>();
             using (var connection = GetConnection())
             {
-                try
-                {
-                    TryOpenConnection(connection);
+                TryOpenConnection(connection);
 
-                    foreach (var query in queries)
+                foreach (var query in queries)
+                {
+                    if (string.IsNullOrEmpty(query.Query))
+                        throw new MissingFieldException("The query field is required.");
+                    if (query.Id == 0)
+                        throw new MissingFieldException(
+                            "The id field is required to assign results in the MultipleQueryResult object.");
+                    // Parameters are only required when there are parameters in the query string.
+                    if (query.Query.Contains("@"))
                     {
-                        if (string.IsNullOrEmpty(query.Query))
-                            throw new MissingFieldException("The query field is required.");
-                        if (query.Id == 0)
-                            throw new MissingFieldException(
-                                "The id field is required to assign results in the MultipleQueryResult object.");
-                        // Parameters are only required when there are parameters in the query string.
-                        if (query.Query.Contains("@"))
-                        {
-                            if (query.Parameters == null || query.Parameters.Length == 0)
-                                throw new MissingFieldException("The parameter field is required.");
-                            if (query.Parameters.ToList().Contains(null))
-                                throw new MissingFieldException("Parameters must not be null.");
-                        }
-                        if (query.QueryType == null)
-                            throw new MissingFieldException(
-                                "The QueryType field is required so the function knows which query type to perform.");
-                        if (multipleQueryResults.ContainsKey(query.Id))
-                            throw new ArgumentException(
-                                "The key supplied already exists in the dictionary; you can not have duplicate keys. Key: " +
-                                query.Id);
-
-                        switch (query.QueryType)
-                        {
-                            case (QueryType.ExecuteSingle):
-                                multipleQueryResults.Add(query.Id,
-                                                         BuildAndExecuteSingle(query.Query, query.Parameters, connection));
-                                break;
-                            case (QueryType.ExecuteMany):
-                                multipleQueryResults.Add(query.Id,
-                                                         BuildAndExecuteMany(query.Query, query.Parameters, connection).ToList());
-                                break;
-                            case (QueryType.ExecuteNonQuery):
-                                multipleQueryResults.Add(query.Id,
-                                                         BuildAndExecuteNonQuery(query.Query, query.Parameters,
-                                                                                 connection));
-                                break;
-                            case (QueryType.ExecuteScalar):
-                                multipleQueryResults.Add(query.Id,
-                                                         BuildAndExecuteScalar(query.Query, query.Parameters, connection));
-                                break;
-                            default:
-                                throw new MissingMemberException(
-                                    "This query type does not exist or is not currently supported by this function.");
-                        }
-
+                        if (query.Parameters == null || query.Parameters.Length == 0)
+                            throw new MissingFieldException("The parameter field is required.");
+                        if (query.Parameters.ToList().Contains(null))
+                            throw new MissingFieldException("Parameters must not be null.");
                     }
-                }
-                finally
-                {
-                    connection.Close();
+                    if (query.QueryType == null)
+                        throw new MissingFieldException(
+                            "The QueryType field is required so the function knows which query type to perform.");
+                    if (multipleQueryResults.ContainsKey(query.Id))
+                        throw new ArgumentException(
+                            "The key supplied already exists in the dictionary; you can not have duplicate keys. Key: " +
+                            query.Id);
+
+                    switch (query.QueryType)
+                    {
+                        case (QueryType.ExecuteSingle):
+                            multipleQueryResults.Add(query.Id,
+                                                        BuildAndExecuteSingle(query.Query, query.Parameters, connection));
+                            break;
+                        case (QueryType.ExecuteMany):
+                            multipleQueryResults.Add(query.Id,
+                                                        BuildAndExecuteMany(query.Query, query.Parameters, connection).ToList());
+                            break;
+                        case (QueryType.ExecuteNonQuery):
+                            multipleQueryResults.Add(query.Id,
+                                                        BuildAndExecuteNonQuery(query.Query, query.Parameters,
+                                                                                connection));
+                            break;
+                        case (QueryType.ExecuteScalar):
+                            multipleQueryResults.Add(query.Id,
+                                                        BuildAndExecuteScalar(query.Query, query.Parameters, connection));
+                            break;
+                        default:
+                            throw new MissingMemberException(
+                                "This query type does not exist or is not currently supported by this function.");
+                    }
                 }
             }
             return multipleQueryResults;
@@ -287,7 +280,7 @@ namespace JetToObjects.Database
                 objJRO = null;
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -297,25 +290,23 @@ namespace JetToObjects.Database
 
         private static dynamic BuildAndExecuteSingle(string query, Param[] parameters, OleDbConnection connection)
         {
-            var command = BuildCommand(query, parameters, connection);
-
-            using (command)
+            using (var command = BuildCommand(query, parameters, connection))
             {
-                var reader = command.ExecuteReader();
-                reader.Read();
-
-                dynamic result = null;
-
-                try
+                using (var reader = command.ExecuteReader())
                 {
-                    result = BuildDynamicResult(reader);
-                }
-                catch
-                {
-                }
+                    reader.Read();
 
-                reader.Close();
-                return result;    
+                    dynamic result = null;
+
+                    try
+                    {
+                        result = BuildDynamicResult(reader);
+                    }
+                    catch
+                    {
+                    }
+                    return result; 
+                }
             }
         }
 
@@ -338,9 +329,7 @@ namespace JetToObjects.Database
 
         private NonQueryResult BuildAndExecuteNonQuery(string query, Param[] parameters, OleDbConnection connection)
         {
-            var command = BuildCommand(query, parameters, connection);
-
-            using (command)
+            using (var command = BuildCommand(query, parameters, connection))
             {
                 var result = new NonQueryResult { RowsAffected = command.ExecuteNonQuery() };
                 if (_returnIdentity)
@@ -355,9 +344,7 @@ namespace JetToObjects.Database
 
         private static object BuildAndExecuteScalar(string query, Param[] parameters, OleDbConnection connection)
         {
-            var command = BuildCommand(query, parameters, connection);
-
-            using (command)
+            using (var command = BuildCommand(query, parameters, connection))
             {
                 return command.ExecuteScalar();
             }
@@ -384,7 +371,7 @@ namespace JetToObjects.Database
                 {
                     if (attempts == Db.MaxConnectionAttempts)
                     {
-                        throw new Exception(String.Format("Unable to open database connection after {0} attempts", attempts), new Exception(connection.DataSource, e));
+                        throw new Exception(string.Format("Unable to open database connection after {0} attempts", attempts), new Exception(connection.DataSource, e));
                     }
 
                     Thread.Sleep(attempts * 1000);
@@ -421,7 +408,7 @@ namespace JetToObjects.Database
             return command;
         }
 		
-        private static dynamic BuildDynamicResult(OleDbDataReader reader)
+        private static dynamic BuildDynamicResult(DbDataReader reader)
         {
             if (!reader.HasRows)
             {
@@ -429,7 +416,7 @@ namespace JetToObjects.Database
             }
 
             dynamic result = new ExpandoObject();
-            var resultDictionary = result as IDictionary<string, object>;
+            var resultDictionary = (IDictionary<string, object>) result;
 
             for (var i = 0; i < reader.FieldCount; i++)
             {
