@@ -6,6 +6,8 @@ using System.Data.OleDb;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using JetToObjects.Helpers;
@@ -43,21 +45,14 @@ namespace JetToObjects.Database
             }
         }
 
-        public IEnumerable<dynamic> ExecuteManyWithConnection(string query, OleDbConnection connection, Param[] parameters = null)
+        public IEnumerable<dynamic> ExecuteManyWithConnection(string query, OleDbConnection connection,
+            Param[] parameters = null)
         {
             TryOpenConnection(connection);
 
             return BuildAndExecuteMany(query, parameters, connection);
         }
-        
-        #region Docs
-        /// <summary>
-        /// Executes the sql query and returns a single result
-        /// </summary>
-        /// <param name="query">The sql query string</param>
-        /// <param name="parameters">The parameters for the sql query</param>
-        /// <returns>The single result of the query</returns>
-        #endregion
+
         public dynamic ExecuteSingle(string query, params Param[] parameters)
         {
             using (var connection = GetConnection())
@@ -82,7 +77,8 @@ namespace JetToObjects.Database
             }
         }
 
-        public NonQueryResult ExecuteNonQueryWithConnection(string query, OleDbConnection connection, Param[] parameters = null)
+        public NonQueryResult ExecuteNonQueryWithConnection(string query, OleDbConnection connection,
+            Param[] parameters = null)
         {
             TryOpenConnection(connection);
             return BuildAndExecuteNonQuery(query, parameters, connection);
@@ -120,7 +116,7 @@ namespace JetToObjects.Database
                     // Parameters are only required when there are parameters in the query string.
                     if (query.Query.Contains("@"))
                     {
-                        if (query.Parameters == null || query.Parameters.Length == 0)
+                        if ((query.Parameters == null) || (query.Parameters.Length == 0))
                             throw new MissingFieldException("The parameter field is required.");
                         if (query.Parameters.ToList().Contains(null))
                             throw new MissingFieldException("Parameters must not be null.");
@@ -135,22 +131,22 @@ namespace JetToObjects.Database
 
                     switch (query.QueryType)
                     {
-                        case (QueryType.ExecuteSingle):
+                        case QueryType.ExecuteSingle:
                             multipleQueryResults.Add(query.Id,
-                                                        BuildAndExecuteSingle(query.Query, query.Parameters, connection));
+                                BuildAndExecuteSingle(query.Query, query.Parameters, connection));
                             break;
-                        case (QueryType.ExecuteMany):
+                        case QueryType.ExecuteMany:
                             multipleQueryResults.Add(query.Id,
-                                                        BuildAndExecuteMany(query.Query, query.Parameters, connection).ToList());
+                                BuildAndExecuteMany(query.Query, query.Parameters, connection).ToList());
                             break;
-                        case (QueryType.ExecuteNonQuery):
+                        case QueryType.ExecuteNonQuery:
                             multipleQueryResults.Add(query.Id,
-                                                        BuildAndExecuteNonQuery(query.Query, query.Parameters,
-                                                                                connection));
+                                BuildAndExecuteNonQuery(query.Query, query.Parameters,
+                                    connection));
                             break;
-                        case (QueryType.ExecuteScalar):
+                        case QueryType.ExecuteScalar:
                             multipleQueryResults.Add(query.Id,
-                                                        BuildAndExecuteScalar(query.Query, query.Parameters, connection));
+                                BuildAndExecuteScalar(query.Query, query.Parameters, connection));
                             break;
                         default:
                             throw new MissingMemberException(
@@ -161,7 +157,8 @@ namespace JetToObjects.Database
             return multipleQueryResults;
         }
 
-        public Dictionary<int, dynamic> ExecuteMultipleQueriesWithConnection(IEnumerable<MultipleQuery> queries, OleDbConnection connection)
+        public Dictionary<int, dynamic> ExecuteMultipleQueriesWithConnection(IEnumerable<MultipleQuery> queries,
+            OleDbConnection connection)
         {
             var multipleQueryResults = new Dictionary<int, dynamic>();
             TryOpenConnection(connection);
@@ -176,7 +173,7 @@ namespace JetToObjects.Database
                 // Parameters are only required when there are parameters in the query string.
                 if (query.Query.Contains("@"))
                 {
-                    if (query.Parameters == null || query.Parameters.Length == 0)
+                    if ((query.Parameters == null) || (query.Parameters.Length == 0))
                         throw new MissingFieldException("The parameter field is required.");
                     if (query.Parameters.ToList().Contains(null))
                         throw new MissingFieldException("Parameters must not be null.");
@@ -191,25 +188,28 @@ namespace JetToObjects.Database
 
                 switch (query.QueryType)
                 {
-                    case (QueryType.ExecuteSingle):
-                        multipleQueryResults.Add(query.Id, BuildAndExecuteSingle(query.Query, query.Parameters, connection));
+                    case QueryType.ExecuteSingle:
+                        multipleQueryResults.Add(query.Id,
+                            BuildAndExecuteSingle(query.Query, query.Parameters, connection));
                         break;
-                    case (QueryType.ExecuteMany):
-                        multipleQueryResults.Add(query.Id, BuildAndExecuteMany(query.Query, query.Parameters, connection));
+                    case QueryType.ExecuteMany:
+                        multipleQueryResults.Add(query.Id,
+                            BuildAndExecuteMany(query.Query, query.Parameters, connection));
                         break;
-                    case (QueryType.ExecuteNonQuery):
-                        multipleQueryResults.Add(query.Id, BuildAndExecuteNonQuery(query.Query, query.Parameters, connection));
+                    case QueryType.ExecuteNonQuery:
+                        multipleQueryResults.Add(query.Id,
+                            BuildAndExecuteNonQuery(query.Query, query.Parameters, connection));
                         break;
-                    case (QueryType.ExecuteScalar):
-                        multipleQueryResults.Add(query.Id, BuildAndExecuteScalar(query.Query, query.Parameters, connection));
+                    case QueryType.ExecuteScalar:
+                        multipleQueryResults.Add(query.Id,
+                            BuildAndExecuteScalar(query.Query, query.Parameters, connection));
                         break;
                     default:
                         throw new MissingMemberException(
                             "This query type does not exist or is not currently supported by this function.");
                 }
-
             }
-            
+
             return multipleQueryResults;
         }
 
@@ -217,17 +217,21 @@ namespace JetToObjects.Database
         {
             try
             {
-                object objJRO = Activator.CreateInstance(Type.GetTypeFromProgID("JRO.JetEngine"));
-                object[] oParams = { ConnectionStrings.OleDb(_connectionString, _password), ConnectionStrings.OleDb(newDbPath, _password) + ";" };
-                objJRO.GetType().InvokeMember("CompactDatabase",
-                                              System.Reflection.BindingFlags.InvokeMethod,
-                                              null,
-                                              objJRO,
-                                              oParams);
+                var jro = Activator.CreateInstance(Type.GetTypeFromProgID("JRO.JetEngine"));
+                object[] oParams =
+                {
+                    ConnectionStrings.OleDb(_connectionString, _password),
+                    ConnectionStrings.OleDb(newDbPath, _password) + ";"
+                };
+                jro.GetType().InvokeMember("CompactDatabase",
+                    BindingFlags.InvokeMethod,
+                    null,
+                    jro,
+                    oParams);
                 File.Delete(_connectionString);
                 File.Move(newDbPath, _connectionString);
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(objJRO);
-                objJRO = null;
+                Marshal.ReleaseComObject(jro);
+                jro = null;
                 return true;
             }
             catch (Exception)
@@ -235,31 +239,30 @@ namespace JetToObjects.Database
                 return false;
             }
         }
-        
+
         private static dynamic BuildAndExecuteSingle(string query, Param[] parameters, OleDbConnection connection)
         {
             dynamic result = null;
 
-            using (var command = BuildCommand(query, parameters, connection))
+            try
             {
-                using (var reader = command.ExecuteReader())
+                using (var command = BuildCommand(query, parameters, connection))
                 {
-                    if (reader != null && reader.Read())
+                    using (var reader = command.ExecuteReader())
                     {
-                        try
-                        {
+                        if ((reader != null) && reader.Read())
                             result = BuildDynamicResult(reader);
-                        }
-                        catch
-                        {
-                        }
                     }
-                    return result; 
                 }
             }
+            catch
+            {
+            }
+            return result;
         }
 
-        private static IEnumerable<dynamic> BuildAndExecuteMany(string query, Param[] parameters, OleDbConnection connection)
+        private static IEnumerable<dynamic> BuildAndExecuteMany(string query, Param[] parameters,
+            OleDbConnection connection)
         {
             using (var command = BuildCommand(query, parameters, connection))
             {
@@ -269,9 +272,7 @@ namespace JetToObjects.Database
                         yield break;
 
                     while (reader.Read())
-                    {
                         yield return BuildDynamicResult(reader);
-                    }
                 }
             }
         }
@@ -280,14 +281,13 @@ namespace JetToObjects.Database
         {
             using (var command = BuildCommand(query, parameters, connection))
             {
-                var result = new NonQueryResult { RowsAffected = command.ExecuteNonQuery() };
+                var result = new NonQueryResult {RowsAffected = command.ExecuteNonQuery()};
                 if (_returnIdentity)
                 {
                     command.CommandText = "select @@identity";
                     result.Identity = Convert.ToInt64(command.ExecuteScalar());
                 }
-
-                return result;    
+                return result;
             }
         }
 
@@ -310,7 +310,6 @@ namespace JetToObjects.Database
                 return;
 
             for (var attempts = 1; attempts <= Db.MaxConnectionAttempts; attempts++)
-            {
                 try
                 {
                     connection.Open();
@@ -319,20 +318,19 @@ namespace JetToObjects.Database
                 catch (Exception e)
                 {
                     if (attempts == Db.MaxConnectionAttempts)
-                    {
-                        throw new Exception(string.Format("Unable to open database connection after {0} attempts", attempts), new Exception(connection.DataSource, e));
-                    }
+                        throw new Exception(
+                            string.Format("Unable to open database connection after {0} attempts", attempts),
+                            new Exception(connection.DataSource, e));
 
-                    Thread.Sleep(attempts * 1000);
+                    Thread.Sleep(attempts*1000);
                 }
-            }
         }
 
         private static OleDbCommand BuildCommand(string query, Param[] parameters, OleDbConnection connection)
         {
             var command = new OleDbCommand(query, connection);
 
-            if(parameters != null && parameters.Any())
+            if ((parameters != null) && parameters.Any())
             {
                 var pattern = string.Format("({0})", string.Join(@"\b|", parameters.Select(x => x.Name)));
                 var queryParameters = Regex.Matches(query, pattern);
@@ -353,16 +351,14 @@ namespace JetToObjects.Database
                     command.Parameters.Add(p);
                 }
             }
-            
+
             return command;
         }
-		
+
         private static dynamic BuildDynamicResult(DbDataReader reader)
         {
             if (!reader.HasRows)
-            {
                 return null;
-            }
 
             dynamic result = new ExpandoObject();
             var resultDictionary = (IDictionary<string, object>) result;

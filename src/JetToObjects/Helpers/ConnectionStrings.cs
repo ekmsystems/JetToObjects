@@ -16,9 +16,7 @@ namespace JetToObjects.Helpers
             };
 
             if (password != null)
-            {
-                builder.Add("Jet OLEDB:Database Password", password);    
-            }
+                builder.Add("Jet OLEDB:Database Password", password);
 
             return builder.ConnectionString;
         }

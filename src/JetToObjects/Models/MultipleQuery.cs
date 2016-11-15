@@ -4,7 +4,10 @@ namespace JetToObjects.Models
 {
     public enum QueryType
     {
-        ExecuteSingle, ExecuteMany, ExecuteNonQuery, ExecuteScalar
+        ExecuteSingle,
+        ExecuteMany,
+        ExecuteNonQuery,
+        ExecuteScalar
     }
 
     public class MultipleQuery
