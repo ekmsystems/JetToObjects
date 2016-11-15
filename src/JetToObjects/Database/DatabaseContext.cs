@@ -26,25 +26,12 @@ namespace JetToObjects.Database
             _password = password;
         }
 
-        #region Docs
-        /// <summary>
-        /// Configures a non-query (insert statement) to return the identity of the last record inserted 
-        /// </summary>
-        #endregion
         public DatabaseContext ReturnIdentity()
         {
             _returnIdentity = true;
             return this;
         }
 
-        #region Docs
-        /// <summary>
-        /// Executes the sql query and returns a collection of results
-        /// </summary>
-        /// <param name="query">The sql query string</param>
-        /// <param name="parameters">The parameters for the sql query</param>
-        /// <returns>The collection of results from the query</returns>
-        #endregion
         public IEnumerable<dynamic> ExecuteMany(string query, params Param[] parameters)
         {
             using (var connection = GetConnection())
@@ -86,14 +73,6 @@ namespace JetToObjects.Database
             return BuildAndExecuteSingle(query, parameters, connection);
         }
 
-        #region Docs
-        /// <summary>
-        /// Executes the sql query and returns the number of rows affected
-        /// </summary>
-        /// <param name="query">The sql query string</param>
-        /// <param name="parameters">The parameters for the sql query</param>
-        /// <returns>The number of rows affected</returns>
-        #endregion
         public NonQueryResult ExecuteNonQuery(string query, params Param[] parameters)
         {
             using (var connection = GetConnection())
@@ -109,14 +88,6 @@ namespace JetToObjects.Database
             return BuildAndExecuteNonQuery(query, parameters, connection);
         }
 
-        #region Docs
-        /// <summary>
-        /// Executes the sql query and returns a scalar value
-        /// </summary>
-        /// <param name="query">The sql query string</param>
-        /// <param name="parameters">The parameters for the sql query</param>
-        /// <returns>The scalar value of the query</returns>
-        #endregion
         public object ExecuteScalar(string query, params Param[] parameters)
         {
             using (var connection = GetConnection())
@@ -132,15 +103,6 @@ namespace JetToObjects.Database
             return BuildAndExecuteScalar(query, parameters, connection);
         }
 
-        #region Docs
-
-        /// <summary>
-        /// Loops through the IEnumerable of queries passed in, executing each with respective params all whilst the current connection is open. 
-        /// </summary>
-        /// <param name="queries">A list of MultipleQuery objects passing the query and params for each statement to be run. NOTE: The id of each query should be unique.</param>
-        /// <returns>The collection of results from the query in a dictionary, with each resultset linked to the id it was passed in with.</returns>
-
-        #endregion
         public Dictionary<int, dynamic> ExecuteMultipleQueries(IEnumerable<MultipleQuery> queries)
         {
             var multipleQueryResults = new Dictionary<int, dynamic>();
@@ -251,31 +213,19 @@ namespace JetToObjects.Database
             return multipleQueryResults;
         }
 
-        #region Docs
-        /// <summary>
-        /// Compact and repair database.
-        /// Database is compacted to a new file, the copied over the old one.
-        /// </summary>
-        /// <param name="newDbPath">The path for the new db file</param>
-        #endregion
         public bool CompactRepair(string newDbPath)
         {
             try
             {
-                //var provider = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=";
                 object objJRO = Activator.CreateInstance(Type.GetTypeFromProgID("JRO.JetEngine"));
-                //oParams = new object[] {provider + _connectionString, provider + newDbPath + ";"};
                 object[] oParams = { ConnectionStrings.OleDb(_connectionString, _password), ConnectionStrings.OleDb(newDbPath, _password) + ";" };
-                //invoke a CompactDatabase method of a JRO object and pass Parameters array
                 objJRO.GetType().InvokeMember("CompactDatabase",
                                               System.Reflection.BindingFlags.InvokeMethod,
                                               null,
                                               objJRO,
                                               oParams);
-                //database is compacted now to a new file, copy it over an old one and delete it
                 File.Delete(_connectionString);
                 File.Move(newDbPath, _connectionString);
-                //clean up (just in case)
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(objJRO);
                 objJRO = null;
                 return true;
@@ -286,24 +236,23 @@ namespace JetToObjects.Database
             }
         }
         
-        #region Private Functions
-
         private static dynamic BuildAndExecuteSingle(string query, Param[] parameters, OleDbConnection connection)
         {
+            dynamic result = null;
+
             using (var command = BuildCommand(query, parameters, connection))
             {
                 using (var reader = command.ExecuteReader())
                 {
-                    reader.Read();
-
-                    dynamic result = null;
-
-                    try
+                    if (reader != null && reader.Read())
                     {
-                        result = BuildDynamicResult(reader);
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            result = BuildDynamicResult(reader);
+                        }
+                        catch
+                        {
+                        }
                     }
                     return result; 
                 }
@@ -440,7 +389,5 @@ namespace JetToObjects.Database
         {
             return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
-
-        #endregion
     }
 }
