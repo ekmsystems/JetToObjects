@@ -4,8 +4,8 @@ namespace JetToObjects.Mapping
 {
     public class ObjectMapping
     {
-        private readonly Dictionary<string, string> _mappings = new Dictionary<string, string>();
         private readonly List<string> _exclusions = new List<string>();
+        private readonly Dictionary<string, string> _mappings = new Dictionary<string, string>();
 
         public void Map(string from, string to)
         {
@@ -15,7 +15,7 @@ namespace JetToObjects.Mapping
         public string Get(string from)
         {
             string value;
-            return _mappings.TryGetValue(@from, out value) ? value : null;
+            return _mappings.TryGetValue(from, out value) ? value : null;
         }
 
         public void Exclude(string field)
