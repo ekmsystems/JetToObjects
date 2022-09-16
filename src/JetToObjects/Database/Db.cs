@@ -1,4 +1,4 @@
-﻿namespace JetToObjects.Database
+﻿namespace ekm.oledb.data
 {
     public static class Db
     {

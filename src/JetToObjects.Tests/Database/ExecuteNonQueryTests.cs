@@ -1,9 +1,8 @@
 using System.Data.OleDb;
 using System.IO;
-using JetToObjects.Database;
 using NUnit.Framework;
 
-namespace JetToObjects.Tests.Database
+namespace ekm.oledb.data.Tests.Database
 {
     [TestFixture]
     public class ExecuteNonQueryTests

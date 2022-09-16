@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using JetToObjects.Mapping;
-using JetToObjects.Tests.Mapping.Data;
+using ekm.oledb.data.Tests.Mapping.Data;
 using NUnit.Framework;
 
-namespace JetToObjects.Tests.Mapping
+namespace ekm.oledb.data.Tests.Mapping
 {
     [TestFixture]
     public class MappingTests

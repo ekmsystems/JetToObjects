@@ -1,6 +1,6 @@
 using System.Data.OleDb;
 
-namespace JetToObjects.Database
+namespace ekm.oledb.data
 {
     public class Param
     {

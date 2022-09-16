@@ -1,7 +1,7 @@
 using System;
 using System.Data.OleDb;
 
-namespace JetToObjects.Helpers
+namespace ekm.oledb.data.Helpers
 {
     public static class ConnectionStrings
     {

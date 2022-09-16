@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace JetToObjects.Mapping
+namespace ekm.oledb.data
 {
     public static class Mapper
     {
@@ -42,8 +42,8 @@ namespace JetToObjects.Mapping
             if (mapping.IsExcluded(propertyName))
                 return null;
 
-            return properties.SingleOrDefault(dp => dp.Name == mapping.Get(propertyName)) ??
-                   properties.SingleOrDefault(dp => dp.Name == propertyName);
+            return properties.SingleOrDefault(dp => String.Equals(dp.Name, mapping.Get(propertyName), StringComparison.CurrentCultureIgnoreCase)) ??
+                   properties.SingleOrDefault(dp => String.Equals(dp.Name, propertyName, StringComparison.CurrentCultureIgnoreCase));
         }
 
         private static PropertyInfo[] GetProperties<T>(T source)

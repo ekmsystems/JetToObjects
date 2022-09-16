@@ -10,10 +10,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using JetToObjects.Helpers;
-using JetToObjects.Models;
+using ekm.oledb.data.Helpers;
 
-namespace JetToObjects.Database
+namespace ekm.oledb.data
 {
     public class DatabaseContext
     {

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("JetToObjects.Tests")]
+[assembly: AssemblyTitle("ekm.oledb.data.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("EKM Systems")]
-[assembly: AssemblyProduct("JetToObjects.Tests")]
+[assembly: AssemblyProduct("ekm.oledb.data.Tests")]
 [assembly: AssemblyCopyright("Copyright © EKM Systems 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

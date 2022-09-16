@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.OleDb;
 using System.IO;
-using JetToObjects.Database;
-using JetToObjects.Models;
 using NUnit.Framework;
 
-namespace JetToObjects.Tests.Database
+namespace ekm.oledb.data.Tests.Database
 {
     [TestFixture]
     public class ExecuteMultipleQueryTests

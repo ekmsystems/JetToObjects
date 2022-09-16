@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace JetToObjects.Mapping
+namespace ekm.oledb.data
 {
     public class ObjectMapping
     {

@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>JetToObjects.Tests</RootNamespace>
     <AssemblyName>JetToObjects.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\ekmTooling\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -56,11 +56,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.mocks">
-      <HintPath>..\..\lib\NUnit.2.5.9.10348\lib\nunit.mocks.dll</HintPath>
-    </Reference>
-    <Reference Include="pnunit.framework">
-      <HintPath>..\..\lib\NUnit.2.5.9.10348\lib\pnunit.framework.dll</HintPath>
+    <Reference Include="nunit.mocks, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.Mocks.2.6.4\lib\nunit.mocks.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

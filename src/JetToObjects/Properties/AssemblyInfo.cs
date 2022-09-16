@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("JetToObjects")]
-[assembly: AssemblyDescription("JetToObjects is a basic data access library that simplifies accessing a Jet database and getting results back.")]
+[assembly: AssemblyTitle("ekm.oledb.data")]
+[assembly: AssemblyDescription("ekm.oledb.data is a basic data access library that simplifies accessing a Jet database and getting results back.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("EKM Systems")]
-[assembly: AssemblyProduct("JetToObjects")]
+[assembly: AssemblyProduct("ekm.oledb.data")]
 [assembly: AssemblyCopyright("Copyright © EKM Systems 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

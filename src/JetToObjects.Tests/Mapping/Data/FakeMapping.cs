@@ -1,6 +1,4 @@
-using JetToObjects.Mapping;
-
-namespace JetToObjects.Tests.Mapping.Data
+namespace ekm.oledb.data.Tests.Mapping.Data
 {
     public class FakeMapping : ObjectMapping
     {

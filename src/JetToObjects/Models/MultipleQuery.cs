@@ -1,6 +1,6 @@
-﻿using JetToObjects.Database;
+﻿using ekm.oledb.data;
 
-namespace JetToObjects.Models
+namespace ekm.oledb.data
 {
     public enum QueryType
     {
